@@ -8,7 +8,6 @@
             var map;
             $(document).ready(function () {
 
-                
                 function seismes(feature, resolution) {
                     var style = new ol.style.Style({
                         image: new ol.style.Circle({
@@ -57,12 +56,12 @@
 
                     ]                
                 });
+
                 map.getView().setCenter(ol.proj.transform([7, 47], "EPSG:4326", "EPSG:3857"))
                 map.getView().setZoom(5);
                 
                 var layerSwitcher = new ol.control.LayerSwitcher();
                 map.addControl(layerSwitcher); 
-                        
 
             });
         </script>
