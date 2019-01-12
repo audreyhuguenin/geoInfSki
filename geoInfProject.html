@@ -41,7 +41,7 @@
 
             let ARRETS_TPG = new ol.layer.Vector({
                 source: new ol.source.Vector({
-                    url: "https://audreyhuguenin.carto.com/api/v2/sql?format=GeoJSON&q=select*from%20public.tpg_arrets",
+                    url: "https://audreyhuguenin.carto.com/api/v2/sql?format=GeoJSON&q=select%20cartodb_id,%20the_geom,%20nom_arret,%20ligne,%20direction%20from%20public.tpg_arrets",
                     format: new ol.format.GeoJSON()
                 })
             });
