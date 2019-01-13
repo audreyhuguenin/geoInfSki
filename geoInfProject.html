@@ -7,7 +7,7 @@
         <link rel="stylesheet" href="css/popupCss.css" type="text/css">
         <script src="lib/layerswitcher/ol3-layerswitcher.js" type="text/javascript"></script>
         <script src="js/cartoDB.js" type="text/javascript"></script>
-        <script src="js/interractionsTPG.js" type="text/javascript"></script>
+        <script src="js/style.js" type="text/javascript"></script>
         <script type="text/javascript">
         
             var map;
@@ -36,15 +36,23 @@
                 source: new ol.source.Vector({
                     url: "https://audreyhuguenin.carto.com/api/v2/sql?format=GeoJSON&q=select%20cartodb_id,%20the_geom,%20nom_arret,%20ligne,%20direction%20from%20public.tpg_arrets",
                     format: new ol.format.GeoJSON()
-                })
+                }),
+                style: new ol.style.Style({
+                        image: new ol.style.Icon({
+                        src: "./img/TPG.png",
+                        anchor:  [0.5, 0.5],
+                        scale:0.018})
+                    })
             });
+
 
             let installations_sportive = new ol.layer.Vector({
                 title:"Installation sportive",
                 source: new ol.source.Vector({
                     url: "https://audreyhuguenin.carto.com:443/api/v2/sql?format=GeoJSON&q=select%20*%20from%20public.instsport_ext",
                     format: new ol.format.GeoJSON()
-                })
+                }),
+                style: instSportStyle
               
             });
 
@@ -127,7 +135,8 @@ $(document).ready(function () {
                 var selectInteractionTPG = new ol.interaction.Select({
                     condition: ol.events.condition.click,
                     // the interactive layers on which the selection is possible (they may be more than one)
-                    layers: [ARRETS_TPG]   
+                    layers: [ARRETS_TPG, installations_sportive],
+                    style: selectedStyle  
                 });
                 map.addInteraction(selectInteractionTPG);
 
@@ -136,17 +145,40 @@ $(document).ready(function () {
                 {
                     if(e.selected.length > 0) 
                     {
-                        console.log(e.selected[0]);
+                        //si c'est une installations sportive
+                        if(e.selected[0].values_.categorie1!=undefined)
+                        {
+                            var sport = e.selected[0].get("sport");
+                        var equipement = e.selected[0].get("nom_equipe");
+                        var commune = e.selected[0].get("commune");
+                        var photos = e.selected[0].get("photos");
+                        var ficheEquipe = e.selected[0].get("fiche_equi");
+                        $("#info").html("Sport: "+sport+"<br> Equipement: "+ equipement+"<br>Commune: "+commune+"<br>Photos: <a href='"+photos+"'>"
+                        +photos+"</a><br>Fiche de l'équipement: <a href='"+ficheEquipe+"'>"+ficheEquipe+"</a>");
+                        }
+                        //si c'est un arret TPG
+                        else if(e.selected[0].values_.direction!=undefined)
+                        {
+                            var nom_arret = e.selected[0].get("nom_arret");
+                        var ligne = e.selected[0].get("ligne");
+                        var directions = e.selected[0].get("direction");
+                        $("#info").html("Arrêt: "+nom_arret+"<br> Ligne: "+ ligne+"<br>Directions: "+directions);
+                        }
+                        else
+                        {
+                            // A CHANGER!!
                         var nom_arret = e.selected[0].get("nom_arret");
                         var ligne = e.selected[0].get("ligne");
                         var directions = e.selected[0].get("direction");
                         $("#info").html("Arrêt: "+nom_arret+"<br> Ligne: "+ ligne+"<br>Directions: "+directions);
+                        }
+                        
                     }
                     else
                     {
                         $("#info").html("Sélectionnez un élément sur la carte");
                     }
-                });
+                });       
 
             });
                     
