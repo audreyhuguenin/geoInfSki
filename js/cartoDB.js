@@ -35,7 +35,7 @@ var mapConfig2 = {
             'cartocss':
                 `#layer 
                 {
-                    marker-width: 20;
+                    marker-width: 25;
                     marker-file: url('https://image.flaticon.com/icons/svg/1329/1329633.svg');
                     marker-allow-overlap: true;
                 }`,
@@ -104,15 +104,12 @@ var mapConfig5 = {
         'options': {
             'cartocss_version': '2.1.1',
             'cartocss':
-                `#layer {
-                    marker-width: 14;
-                    marker-fill: #9e4dee;
-                    marker-fill-opacity: 0.9;
+                `#layer 
+                {
+                    marker-width: 25;
+                    marker-file: url('https://image.flaticon.com/icons/svg/196/196634.svg');
                     marker-allow-overlap: true;
-                    marker-line-width: 0.5;
-                    marker-line-color: #FFFFFF;
-                    marker-line-opacity: 1;
-                  }`,
+                }`,
             'sql': `SELECT *
             
                     FROM equipementsplages`,
