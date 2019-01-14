@@ -27,17 +27,7 @@
                             })
                         });
 
-            let lakes_layer = new ol.layer.Image({
-                            title: "Lakes",
-                            source: new ol.source.ImageWMS({
-                                url: blWMS,
-                                params: {
-                                    VERSION: "1.0.0",
-                                    LAYERS: "ne_10m_lakes",
-                                    FORMAT: "image/png"
-                                }
-                            }),
-                        });
+           //Vector layers
 
             let ARRETS_TPG = new ol.layer.Vector({
                 title: "Arrêt TPG",
@@ -45,11 +35,6 @@
                     url: "https://audreyhuguenin.carto.com/api/v2/sql?format=GeoJSON&q=select%20cartodb_id,%20the_geom,%20nom_arret,%20ligne,%20direction%20from%20public.tpg_arrets",
                     format: new ol.format.GeoJSON()
                 })
-            });
-
-            let WC = new ol.layer.Tile({
-                source: cartoDBSource2,
-                title: "WC Genève"
             });
 
             let velo_itinairaire = new ol.layer.Tile({
@@ -60,6 +45,28 @@
             let installations_sportive = new ol.layer.Tile({
                     source: cartoDBSource4,
                     title: "Installations sportives"
+            });
+
+            let ZONES_loisirs = new ol.layer.Tile({
+                    source: cartoDBSource7,
+                    title: "Itinéraires loisirs divers"
+            });
+
+            // layer tiles
+
+            let WC = new ol.layer.Tile({
+                source: cartoDBSource2,
+                title: "WC Genève"
+            });
+
+            let Equipement_plages = new ol.layer.Tile({
+                source: cartoDBSource5,
+                title: "Equipements plages (WC/douches)"
+            });
+
+            let Pollution_Air = new ol.layer.Tile({
+                source: cartoDBSource6,
+                title: "Pollution de l'air (voir légende)"
             });
 
             console.log(installations_sportive);
@@ -79,29 +86,34 @@ $(document).ready(function () {
                             layers: [
                                 OSM_layer,
                                 Bing_layer,
-                                lakes_layer
                             ]
                         }),
                         new ol.layer.Group({
-                            title: 'Data',
+                            title: 'Data tiles',
+                            layers: [
+                                WC,
+                                Equipement_plages,
+                                Pollution_Air
+                            ]
+                        }),
+                        new ol.layer.Group({
+                            title: 'Data Vector',
                             layers: [
                                 ARRETS_TPG,
-                                WC,
                                 velo_itinairaire,
-                                installations_sportive
+                                installations_sportive,
+                                ZONES_loisirs
                             ]
                         })
                     ]                
                 });
 
-
-/*                map.getView().setCenter(ol.proj.transform([7, 47], "EPSG:4326", "EPSG:3857"));
-                map.getView().setCenter(ol.proj.transform([7, 47], "EPSG:4326", "EPSG:3857"))
-                map.getView().setZoom(5);*/
+                map.getView().setCenter(ol.proj.transform([6.1667, 46.2], "EPSG:4326", "EPSG:3857"));
+                map.getView().setZoom(12);
                 
                 var layerSwitcher = new ol.control.LayerSwitcher();
                 map.addControl(layerSwitcher); 
-
+                      
 });
 
         </script>
