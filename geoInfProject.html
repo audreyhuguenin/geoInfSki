@@ -97,6 +97,10 @@
             });
            
 Pollution_Air.setVisible(false);
+Equipement_plages.setVisible(false);
+velo_itinairaire.setVisible(false);
+WC.setVisible(false);
+ARRETS_TPG.setVisible(false);
           
 
 
@@ -119,9 +123,9 @@ $(document).ready(function () {
                         new ol.layer.Group({
                             title: 'Infos complémentaires',
                             layers: [
+                                Pollution_Air,
                                 WC,
-                                Equipement_plages,
-                                Pollution_Air
+                                Equipement_plages
                             ]
                         }),
                         new ol.layer.Group({
