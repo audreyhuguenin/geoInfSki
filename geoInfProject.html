@@ -45,7 +45,7 @@
                     })
             });
 
-
+//install sportives vector
             let installations_sportive = new ol.layer.Vector({
                 title:"Installation sportive",
                 source: new ol.source.Vector({
@@ -56,36 +56,48 @@
               
             });
 
-            let velo_itinairaire = new ol.layer.Tile({
-                source: cartoDBSource3,
-                title: "Itinéraire de vélo"
+// itinéraires cyclevasions velo vector
+
+                let velo_itinairaire = new ol.layer.Vector({
+                title:"Itinéraires vélo SwissMobil",
+                source: new ol.source.Vector({
+                    url: "https://audreyhuguenin.carto.com:443/api/v2/sql?format=GeoJSON&q=select%20*%20from%20public.otc_cyclevasions",
+                    format: new ol.format.GeoJSON()
+                }),
+                style: cyclevasionStyle              
+            });
+          
+// zones loisirs extérieures vector
+
+                let ZONES_loisirs = new ol.layer.Vector({
+                title:"Itinéraires loisirs divers",
+                source: new ol.source.Vector({
+                    url: "https://audreyhuguenin.carto.com:443/api/v2/sql?format=GeoJSON&q=select%20*%20from%20public.ffp_loisir_line",
+                    format: new ol.format.GeoJSON()
+                }),
+                style: loisirStyle              
             });
 
-            
+//LAYER TILES
 
-            let ZONES_loisirs = new ol.layer.Tile({
-                    source: cartoDBSource7,
-                    title: "Itinéraires loisirs divers"
-            });
-
-            // layer tiles
-
+//wc
             let WC = new ol.layer.Tile({
                 source: cartoDBSource2,
                 title: "WC Genève"
             });
-
+//douches
             let Equipement_plages = new ol.layer.Tile({
                 source: cartoDBSource5,
                 title: "Equipements plages (WC/douches)"
             });
-
+//pollutio  air
             let Pollution_Air = new ol.layer.Tile({
                 source: cartoDBSource6,
                 title: "Pollution de l'air (voir légende)"
             });
-
-            console.log(installations_sportive);
+           
+Pollution_Air.setVisible(false);
+          
 
 
 $(document).ready(function () {
@@ -105,7 +117,7 @@ $(document).ready(function () {
                             ]
                         }),
                         new ol.layer.Group({
-                            title: 'Data tiles',
+                            title: 'Infos complémentaires',
                             layers: [
                                 WC,
                                 Equipement_plages,
@@ -113,7 +125,7 @@ $(document).ready(function () {
                             ]
                         }),
                         new ol.layer.Group({
-                            title: 'Data Vector',
+                            title: 'Interactifs',
                             layers: [
                                 ARRETS_TPG,
                                 velo_itinairaire,
@@ -135,7 +147,10 @@ $(document).ready(function () {
                 var selectInteractionTPG = new ol.interaction.Select({
                     condition: ol.events.condition.click,
                     // the interactive layers on which the selection is possible (they may be more than one)
-                    layers: [ARRETS_TPG, installations_sportive],
+                    layers: [ARRETS_TPG,
+                            velo_itinairaire,
+                            installations_sportive,
+                            ZONES_loisirs],
                     style: selectedStyle  
                 });
                 map.addInteraction(selectInteractionTPG);
@@ -164,13 +179,36 @@ $(document).ready(function () {
                         var directions = e.selected[0].get("direction");
                         $("#info").html("Arrêt: "+nom_arret+"<br> Ligne: "+ ligne+"<br>Directions: "+directions);
                         }
+                        else if(e.selected[0].values_.type_loisi!=undefined)
+                        {
+                            //si c est un sentier loisir
+                            var typeLoisir = e.selected[0].get("type_loisi");
+                            var shapeLen = e.selected[0].get("shape_len");
+                            var unit = "";
+                            if(shapeLen/1000<1) 
+                            {
+                                shapeLen=Math.round(shapeLen);
+                                unit = "m";
+                            }
+                            else 
+                            {
+                                shapeLen = Math.round(shapeLen/100)/10;
+                                unit="km";
+                            }
+                            
+                            $("#info").html("Type de loisir: "+typeLoisir+"<br> Longueur: "+ shapeLen+ unit);
+                        }
                         else
                         {
-                            // A CHANGER!!
-                        var nom_arret = e.selected[0].get("nom_arret");
-                        var ligne = e.selected[0].get("ligne");
-                        var directions = e.selected[0].get("direction");
-                        $("#info").html("Arrêt: "+nom_arret+"<br> Ligne: "+ ligne+"<br>Directions: "+directions);
+                        // si c'est un itinéraire velo
+                        var itineraire = e.selected[0].get("itineraire");
+                        var nom = e.selected[0].get("nom");
+                        var longueur = Math.round(e.selected[0].get("shape_len")/1000);
+                        var type = e.selected[0].get("type");
+                        var statut = e.selected[0].get("statut");
+                        var urlSwissMo = "https://www.schweizmobil.ch/fr/suisse-a-velo.html"
+                        $("#info").html("Itinéraire: "+itineraire+" ("+nom+")<br> Longueur: "+ longueur+" km<br>Type: "+type+
+                        "<br>Statut: "+statut+"<br> Plus de détails sur: <a href='"+urlSwissMo+"'>Site www.schweizmobil.ch</a>");
                         }
                         
                     }
