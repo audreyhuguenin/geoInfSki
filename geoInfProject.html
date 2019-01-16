@@ -106,7 +106,6 @@
 
 
 
-
         Pollution_Air.setVisible(false);
         Equipement_plages.setVisible(false);
         velo_itinairaire.setVisible(false);
@@ -114,7 +113,20 @@
         ARRETS_TPG.setVisible(false);
 
 
+        var vectorLayer;
+        var token = "pk.eyJ1Ijoib2VydHoiLCJhIjoiT29aUVYyRSJ9.mz-_gaaigdhurQPHZf7fig";
+
         $(document).ready(function () {
+
+            vectorLayer = new ol.layer.Vector({
+                source: new ol.source.Vector(), // empty source
+                style: new ol.style.Style({
+                    stroke: new ol.style.Stroke({
+                        color: '#ff0000',
+                        width: 2
+                    })
+                })
+            });
 
             map = new ol.Map({
                 view: new ol.View({
@@ -164,6 +176,19 @@
             var layerSwitcher = new ol.control.LayerSwitcher();
             map.addControl(layerSwitcher);
 
+            initRoute();
+
+            map.on("singleclick", function (e) {
+                console.log("singleclick");
+                var fts = vectorLayer.getSource().getFeatures();
+                console.log(fts);
+                console.log(e.coordinate);
+                console.log(fts[0].getGeometry());
+                fts[0].getGeometry().appendCoordinate(e.coordinate);
+                console.log("fts after" + fts[0]);
+            });
+
+
             var legend = document.getElementsByClassName("my-legend")[0];
 
 
@@ -175,8 +200,8 @@
 
             console.log(Pollution_Air.getVisible());
 
-            Pollution_Air.on('change:hidden', function(){
-                console.log("change")
+            Pollution_Air.on('change', function(){
+                console.log("change");
                 legend.style.display = "none";
             });
 
@@ -257,6 +282,51 @@
                 }
             });
 
+            $("#route").click(function (e) {
+                console.log("click");
+                // interact with Mapbox Directions API given all the segments of the requested route
+                var fts = vectorLayer.getSource().getFeatures();
+                if (fts[0].getGeometry().getLength() >= 2) {
+                    ft = fts[0].getGeometry().clone().transform("EPSG:3857", "EPSG:4326");
+                    var s = ft.getCoordinates().join(";");
+                    console.log("lala" + s);
+
+                    var url = "https://api.mapbox.com/v4/directions/mapbox.walking/" + s + ".json?access_token=" + token;
+                    $.get(url, function (data) {
+
+                        //if(data.origin.properties.name && data.destination.properties.name){
+                            $("#info").html("<p/>De "+data.origin.properties.name + " à " + data.destination.properties.name+"</p>");
+                        //}
+
+                        var geom = new ol.geom.LineString(data.routes[0].geometry.coordinates);
+                        var ft = new ol.Feature({
+                            geometry: geom.transform("EPSG:4326", "EPSG:3857"),
+                            name: "Route 1"
+                        });
+                        vectorLayer.getSource().addFeature(ft);
+                        var fts = vectorLayer.getSource().getFeatures();
+                        fts[0].getGeometry().setCoordinates([]);
+                    });
+                }
+            });
+
+            $("#reset").click(function (e) {
+                console.log("reset");
+                vectorLayer.getSource().clear();
+                $("#info p").remove();
+                initRoute();
+            });
+
+
+            function initRoute(){
+                map.addLayer(vectorLayer);
+                var geom = new ol.geom.LineString([]);
+                var ft = new ol.Feature({
+                    geometry: geom,
+                    name: "Input feature"
+                });
+                vectorLayer.getSource().addFeature(ft);
+            }
 
         });
 
@@ -363,12 +433,19 @@
 <section class="desc">
     <p style="margin: 0">Le but de cette application est de permettre à quiconque de trouver les lieux adéquats pour pratiquer du sport à l'extérieur.
         Grâce à cette application, l'utilisateur peut trouver les arrêts de transports publics les plus proches de son lieu d'exercice.</p>
+    <div id="information">
+        <img id="route" src="https://maps.gstatic.com/tactile/omnibox/directions-1x-20150909.png"/>
+        <img id="reset" src="https://cdn2.iconfinder.com/data/icons/diagona/icon/16/101.png"/>
+    </div>
 </section>
 <div class="container">
     <div id="map">
     </div>
 </div>
-<div id="info"></div>
+<div id="info">
+
+</div>
+
 <div class="footer">
     <div class='my-legend'>
         <div class='legend-title'>Niveau d'émission</div>
