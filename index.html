@@ -5,7 +5,7 @@
     <script type="text/javascript" src="js/config.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v5.3.0/build/ol.js"></script>
-    
+  
     <script src="lib/layerswitcher/ol3-layerswitcher.js" type="text/javascript"></script>
     <script src="https://cartodb-libs.global.ssl.fastly.net/carto.js/v4.0.8/carto.min.js"></script>
 
@@ -159,8 +159,9 @@
                 target: 'map'
             });
 
+            var routeTPG = new ol.source.Vector({})
             routeToTPG = new ol.layer.Vector({
-                source: new ol.source.Vector(), // empty source
+                source: routeTPG, // empty source
                 style: new ol.style.Style({
                     stroke: new ol.style.Stroke({
                         color: '#ff0000',
@@ -223,7 +224,11 @@
                         var photos = e.selected[0].get("photos");
                         var ficheEquipe = e.selected[0].get("fiche_equi");
                         var idSportSelected = e.selected[0].get("cartodb_id");
-                        console.log(idSportSelected);
+                        console.log("lala :" +idSportSelected);
+                        
+
+                        
+                        
 
                       $.get("https://audreyhuguenin.carto.com:443/api/v2/sql?format=GeoJSON&q=select%20the_geom,target_cartodb_id,closest_dist%20from%20test_nearesttpg%20where%20source_cartodb_id%20=%20" + idSportSelected)
                             .done( data => {
@@ -231,13 +236,11 @@
                                 var distance = data.features[0].properties.closest_dist;
                                 $.get("https://audreyhuguenin.carto.com:443/api/v2/sql?format=GeoJSON&q=select%20*%20from%20tpg_arrets%20where%20cartodb_id%20=%20" + arretTPG_id)
                             .done( data => {
-                            console.log(data);
+                            
                             var nomArret_proche = data.features[0].properties.nom_arret;
                             var coordsArret = data.features[0].geometry.coordinates.toString();
                             var sport =e.selected[0].values_.geometry.transform("EPSG:3857", "EPSG:4326");
                             var coordsSport = sport.getCoordinates();
-
-                            console.log("coords "+ coordsArret + " coords sport"+ coordsSport);
 
                             $("#info").html("Sport: "+sportI+"<br> Equipement: "+ equipement+"<br>Commune: "+commune+"<br>Photos: <a href='"+photos+"'>"
                                     +photos+"</a><br>Fiche de l'équipement: <a href='"+ficheEquipe+"'>"+ficheEquipe+"</a><br/> L'arrêt le plus proche: "+nomArret_proche+" ("+Math.round(distance)+"m)");
@@ -249,9 +252,31 @@
                                         name: "Route 1"
                                     });
                                     routeToTPG.getSource().addFeature(ft);
-                                    var fts = routeToTPG.getSource().getFeatures();
-                                    fts[0].getGeometry().setCoordinates([]);
-                                    console.log(fts[0]);
+                                   /*  var fts = routeToTPG.getSource().getFeatures();
+                                    fts[0].getGeometry().setCoordinates([]); */
+
+
+                                    var selectedSport = new ol.geom.Point(e.selected[0].values_.geometry.flatCoordinates);
+   
+                                    var featureSelectedSport = new ol.Feature({
+                                        name: "selectSport",
+                                        geometry: selectedSport
+                                    });
+                                    featureSelectedSport.setStyle(
+                                        new ol.style.Style({
+                                    image: new ol.style.Circle({
+                                        radius: 18,
+                                        stroke: new ol.style.Stroke({
+                                            color: '#004455',
+                                            width: 3
+                                        }),
+                                        fill: new ol.style.Fill({
+                                            color: "white"
+                                        })             
+                                    })
+                                }));
+                                routeTPG.addFeature(featureSelectedSport);
+                                    
                                 });
 
                             });
