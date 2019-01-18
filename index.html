@@ -3,13 +3,14 @@
     <title>ol3 - Ex7c - Styling function</title>
     <meta charset="UTF-8">
     <script type="text/javascript" src="js/config.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="http://openlayers.org/en/v3.20.1/build/ol-debug.js" type="text/javascript"></script>
     <link rel="stylesheet" href="lib/layerswitcher/ol3-layerswitcher.css" type="text/css">
     <link rel="stylesheet" href="https://openlayers.org/en/v5.3.0/css/ol.css" type="text/css">
     <link rel="stylesheet" href="css/style.css" type="text/css">
     <link rel="stylesheet" href="css/popupCss.css" type="text/css">
     <link href="https://carto.com/developers/carto-js/examples/maps/public/style.css" rel="stylesheet">
     <script src="https://cartodb-libs.global.ssl.fastly.net/carto.js/v4.0.8/carto.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="lib/layerswitcher/ol3-layerswitcher.js" type="text/javascript"></script>
     <script src="js/cartoDB.js" type="text/javascript"></script>
     <script src="js/style.js" type="text/javascript"></script>
@@ -54,7 +55,7 @@
         let installations_sportive = new ol.layer.Vector({
             title:"Installation sportive",
             source: new ol.source.Vector({
-                url: "https://audreyhuguenin.carto.com:443/api/v2/sql?format=GeoJSON&q=select%20*%20from%20distance2",
+                url: "https://audreyhuguenin.carto.com:443/api/v2/sql?format=GeoJSON&q=select%20*%20from%20instsport_ext",
                 format: new ol.format.GeoJSON()
             }),
             style: instSportStyle
@@ -115,7 +116,7 @@
         ARRETS_TPG.setVisible(false);
 
 
-        var vectorLayer;
+        var routeToTPG;
         var token = "pk.eyJ1Ijoib2VydHoiLCJhIjoiT29aUVYyRSJ9.mz-_gaaigdhurQPHZf7fig";
 
         $(document).ready(function () {
@@ -155,16 +156,16 @@
                 target: 'map'
             });
 
-            vectorLayer = new ol.layer.Vector({
+            routeToTPG = new ol.layer.Vector({
                 source: new ol.source.Vector(), // empty source
                 style: new ol.style.Style({
                     stroke: new ol.style.Stroke({
                         color: '#ff0000',
-                        width: 2
+                        width: 3
                     })
                 })
             });
-            map.addLayer(vectorLayer);
+            map.addLayer(routeToTPG);
 
 
             map.getView().setCenter(ol.proj.transform([6.1667, 46.2], "EPSG:4326", "EPSG:3857"));
@@ -212,36 +213,47 @@
                     //si c'est une installations sportive
                     if(e.selected[0].values_.categorie1!=undefined)
                     {
-                        console.log(e.selected[0]);
-
-                        var sport = e.selected[0].get("sport");
+                        //legende de l'install sélectionnée
+                        var sportI = e.selected[0].get("sport");
                         var equipement = e.selected[0].get("nom_equipe");
                         var commune = e.selected[0].get("commune");
                         var photos = e.selected[0].get("photos");
                         var ficheEquipe = e.selected[0].get("fiche_equi");
-                        var distance = e.selected[0].get("closest_dist");
+                        var idSportSelected = e.selected[0].get("cartodb_id");
+                        console.log(idSportSelected);
 
-                        $.get("https://audreyhuguenin.carto.com:443/api/v2/sql?format=GeoJSON&q=select%20*%20from%20tpg_arrets%20where%20cartodb_id%20=%20" + e.selected[0].get("source_cartodb_id"))
-                            .done(function( data ) {
-                                console.log( "Data Loaded: " + data.features[0].properties.nom_arret);
-                                var nomArret_proche = data.features[0].properties.nom_arret;
-                                var coordinatesArret = data.features[0].geometry.coordinates.toString();
-                                var coordinatesSport = e.selected[0].getGeometry().transform("EPSG:3857", "EPSG:4326").getCoordinates().toString();
-                                console.log(coordinatesSport);
-                                $("#info").html("Sport: "+sport+"<br> Equipement: "+ equipement+"<br>Commune: "+commune+"<br>Photos: <a href='"+photos+"'>"
+                      $.get("https://audreyhuguenin.carto.com:443/api/v2/sql?format=GeoJSON&q=select%20the_geom,target_cartodb_id,closest_dist%20from%20test_nearesttpg%20where%20source_cartodb_id%20=%20" + idSportSelected)
+                            .done( data => {
+                                var arretTPG_id = data.features[0].properties.target_cartodb_id;
+                                var distance = data.features[0].properties.closest_dist;
+                                $.get("https://audreyhuguenin.carto.com:443/api/v2/sql?format=GeoJSON&q=select%20*%20from%20tpg_arrets%20where%20cartodb_id%20=%20" + arretTPG_id)
+                            .done( data => {
+                            console.log(data);
+                            var nomArret_proche = data.features[0].properties.nom_arret;
+                            var coordsArret = data.features[0].geometry.coordinates.toString();
+                            var sport =e.selected[0].values_.geometry.transform("EPSG:3857", "EPSG:4326");
+                            var coordsSport = sport.getCoordinates();
+
+                            console.log("coords "+ coordsArret + " coords sport"+ coordsSport);
+
+                            $("#info").html("Sport: "+sportI+"<br> Equipement: "+ equipement+"<br>Commune: "+commune+"<br>Photos: <a href='"+photos+"'>"
                                     +photos+"</a><br>Fiche de l'équipement: <a href='"+ficheEquipe+"'>"+ficheEquipe+"</a><br/> L'arrêt le plus proche: "+nomArret_proche+" ("+Math.round(distance)+"m)");
-                                var url = "https://api.mapbox.com/v4/directions/mapbox.walking/" + coordinatesArret + ";"+coordinatesSport + ".json?access_token=" + token;
-                                $.get(url, function (data) {
-                                    var geom = new ol.geom.LineString(data.routes[0].geometry.coordinates);
+                                var url = "https://api.mapbox.com/v4/directions/mapbox.walking/" +coordsSport  + ";"+coordsArret + ".json?access_token=" + token;
+                                $.get(url).done( res=> {
+                                    var geom = new ol.geom.LineString(res.routes[0].geometry.coordinates);
                                     var ft = new ol.Feature({
                                         geometry: geom.transform("EPSG:4326", "EPSG:3857"),
                                         name: "Route 1"
                                     });
-                                    vectorLayer.getSource().addFeature(ft);
-                                    var fts = vectorLayer.getSource().getFeatures();
+                                    routeToTPG.getSource().addFeature(ft);
+                                    var fts = routeToTPG.getSource().getFeatures();
                                     fts[0].getGeometry().setCoordinates([]);
+                                    console.log(fts[0]);
                                 });
+
                             });
+                            });
+                            
                     }
                     //si c'est un arret TPG
                     else if(e.selected[0].values_.direction!=undefined)
