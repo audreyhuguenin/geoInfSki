@@ -173,6 +173,7 @@ var mapConfig7 = {
     }],
 };
 
+
 var cartoDBSource7 = new ol.source.CartoDB({
     account: 'audreyhuguenin',
     config: mapConfig7

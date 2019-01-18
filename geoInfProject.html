@@ -5,9 +5,11 @@
     <script type="text/javascript" src="js/config.js"></script>
     <link rel="stylesheet" href="lib/layerswitcher/ol3-layerswitcher.css" type="text/css">
     <link rel="stylesheet" href="https://openlayers.org/en/v5.3.0/css/ol.css" type="text/css">
+    <link rel="stylesheet" href="css/style.css" type="text/css">
     <link rel="stylesheet" href="css/popupCss.css" type="text/css">
     <link href="https://carto.com/developers/carto-js/examples/maps/public/style.css" rel="stylesheet">
     <script src="https://cartodb-libs.global.ssl.fastly.net/carto.js/v4.0.8/carto.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="lib/layerswitcher/ol3-layerswitcher.js" type="text/javascript"></script>
     <script src="js/cartoDB.js" type="text/javascript"></script>
     <script src="js/style.js" type="text/javascript"></script>
@@ -52,7 +54,7 @@
         let installations_sportive = new ol.layer.Vector({
             title:"Installation sportive",
             source: new ol.source.Vector({
-                url: "https://audreyhuguenin.carto.com:443/api/v2/sql?format=GeoJSON&q=select%20*%20from%20public.instsport_ext",
+                url: "https://audreyhuguenin.carto.com:443/api/v2/sql?format=GeoJSON&q=select%20*%20from%20distance2",
                 format: new ol.format.GeoJSON()
             }),
             style: instSportStyle
@@ -118,16 +120,6 @@
 
         $(document).ready(function () {
 
-            vectorLayer = new ol.layer.Vector({
-                source: new ol.source.Vector(), // empty source
-                style: new ol.style.Style({
-                    stroke: new ol.style.Stroke({
-                        color: '#ff0000',
-                        width: 2
-                    })
-                })
-            });
-
             map = new ol.Map({
                 view: new ol.View({
                     center:[710000, 5840171],
@@ -163,31 +155,23 @@
                 target: 'map'
             });
 
-            console.log(cartoDBSource6.valueOf());
+            vectorLayer = new ol.layer.Vector({
+                source: new ol.source.Vector(), // empty source
+                style: new ol.style.Style({
+                    stroke: new ol.style.Stroke({
+                        color: '#ff0000',
+                        width: 2
+                    })
+                })
+            });
+            map.addLayer(vectorLayer);
 
-/*            cartoDBSource6.Tiles.getTiles(cartoDBSource6, function(tiles, err) {
-
-                console.log(tiles);
-            })*/
 
             map.getView().setCenter(ol.proj.transform([6.1667, 46.2], "EPSG:4326", "EPSG:3857"));
             map.getView().setZoom(11);
 
             var layerSwitcher = new ol.control.LayerSwitcher();
             map.addControl(layerSwitcher);
-
-            initRoute();
-
-            map.on("singleclick", function (e) {
-                console.log("singleclick");
-                var fts = vectorLayer.getSource().getFeatures();
-                console.log(fts);
-                console.log(e.coordinate);
-                console.log(fts[0].getGeometry());
-                fts[0].getGeometry().appendCoordinate(e.coordinate);
-                console.log("fts after" + fts[0]);
-            });
-
 
             var legend = document.getElementsByClassName("my-legend")[0];
 
@@ -199,6 +183,8 @@
             });
 
             console.log(Pollution_Air.getVisible());
+            console.log(Pollution_Air.listeners_);
+
 
             Pollution_Air.on('change', function(){
                 console.log("change");
@@ -226,14 +212,36 @@
                     //si c'est une installations sportive
                     if(e.selected[0].values_.categorie1!=undefined)
                     {
+                        console.log(e.selected[0]);
 
                         var sport = e.selected[0].get("sport");
                         var equipement = e.selected[0].get("nom_equipe");
                         var commune = e.selected[0].get("commune");
                         var photos = e.selected[0].get("photos");
                         var ficheEquipe = e.selected[0].get("fiche_equi");
-                        $("#info").html("Sport: "+sport+"<br> Equipement: "+ equipement+"<br>Commune: "+commune+"<br>Photos: <a href='"+photos+"'>"
-                            +photos+"</a><br>Fiche de l'équipement: <a href='"+ficheEquipe+"'>"+ficheEquipe+"</a>");
+                        var distance = e.selected[0].get("closest_dist");
+
+                        $.get("https://audreyhuguenin.carto.com:443/api/v2/sql?format=GeoJSON&q=select%20*%20from%20tpg_arrets%20where%20cartodb_id%20=%20" + e.selected[0].get("source_cartodb_id"))
+                            .done(function( data ) {
+                                console.log( "Data Loaded: " + data.features[0].properties.nom_arret);
+                                var nomArret_proche = data.features[0].properties.nom_arret;
+                                var coordinatesArret = data.features[0].geometry.coordinates.toString();
+                                var coordinatesSport = e.selected[0].getGeometry().transform("EPSG:3857", "EPSG:4326").getCoordinates().toString();
+                                console.log(coordinatesSport);
+                                $("#info").html("Sport: "+sport+"<br> Equipement: "+ equipement+"<br>Commune: "+commune+"<br>Photos: <a href='"+photos+"'>"
+                                    +photos+"</a><br>Fiche de l'équipement: <a href='"+ficheEquipe+"'>"+ficheEquipe+"</a><br/> L'arrêt le plus proche: "+nomArret_proche+" ("+Math.round(distance)+"m)");
+                                var url = "https://api.mapbox.com/v4/directions/mapbox.walking/" + coordinatesArret + ";"+coordinatesSport + ".json?access_token=" + token;
+                                $.get(url, function (data) {
+                                    var geom = new ol.geom.LineString(data.routes[0].geometry.coordinates);
+                                    var ft = new ol.Feature({
+                                        geometry: geom.transform("EPSG:4326", "EPSG:3857"),
+                                        name: "Route 1"
+                                    });
+                                    vectorLayer.getSource().addFeature(ft);
+                                    var fts = vectorLayer.getSource().getFeatures();
+                                    fts[0].getGeometry().setCoordinates([]);
+                                });
+                            });
                     }
                     //si c'est un arret TPG
                     else if(e.selected[0].values_.direction!=undefined)
@@ -281,150 +289,8 @@
                     $("#info").html("Sélectionnez un élément sur la carte");
                 }
             });
-
-            $("#route").click(function (e) {
-                console.log("click");
-                // interact with Mapbox Directions API given all the segments of the requested route
-                var fts = vectorLayer.getSource().getFeatures();
-                if (fts[0].getGeometry().getLength() >= 2) {
-                    ft = fts[0].getGeometry().clone().transform("EPSG:3857", "EPSG:4326");
-                    var s = ft.getCoordinates().join(";");
-                    console.log("lala" + s);
-
-                    var url = "https://api.mapbox.com/v4/directions/mapbox.walking/" + s + ".json?access_token=" + token;
-                    $.get(url, function (data) {
-
-                        //if(data.origin.properties.name && data.destination.properties.name){
-                            $("#info").html("<p/>De "+data.origin.properties.name + " à " + data.destination.properties.name+"</p>");
-                        //}
-
-                        var geom = new ol.geom.LineString(data.routes[0].geometry.coordinates);
-                        var ft = new ol.Feature({
-                            geometry: geom.transform("EPSG:4326", "EPSG:3857"),
-                            name: "Route 1"
-                        });
-                        vectorLayer.getSource().addFeature(ft);
-                        var fts = vectorLayer.getSource().getFeatures();
-                        fts[0].getGeometry().setCoordinates([]);
-                    });
-                }
-            });
-
-            $("#reset").click(function (e) {
-                console.log("reset");
-                vectorLayer.getSource().clear();
-                $("#info p").remove();
-                initRoute();
-            });
-
-
-            function initRoute(){
-                map.addLayer(vectorLayer);
-                var geom = new ol.geom.LineString([]);
-                var ft = new ol.Feature({
-                    geometry: geom,
-                    name: "Input feature"
-                });
-                vectorLayer.getSource().addFeature(ft);
-            }
-
         });
-
-
     </script>
-    <style type="text/css">
-
-        body {
-            background-color: #004455;
-        }
-        #map {
-            width: 100%;
-            height: 100%;
-            padding-top: 50px;
-            padding-bottom: 100px;
-            padding-left: 50px;
-            padding-right: 50px;
-        }
-
-        #info {
-            position: absolute;
-            margin-top: 120px;
-            left: 60px;
-            background-color: rgba(0, 0, 10, 0.7);
-            border-radius: 10px;
-            padding: 8px;
-            z-index: 1000000000;
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 14px;
-            font-weight: 400;
-            color: white;
-        }
-
-        .titre {
-            padding-left: 50px;
-            padding-top: 25px;
-            font-family: "Barlow ExtraBold";
-            background-color: white;
-            margin: 0;
-            padding-bottom: 25px;
-        }
-
-        .desc {
-            padding-left: 50px;
-            padding-right: 50px;
-            font-family: "Barlow SemiBold";
-            background-color: white;
-            margin: 0;
-            padding-bottom: 25px;
-        }
-
-        .my-legend .legend-title {
-            text-align: left;
-            margin-bottom: 8px;
-            font-weight: bold;
-            font-size: 90%;
-        }
-        .my-legend .legend-scale ul {
-            margin: 0;
-            padding: 0;
-            float: left;
-            list-style: none;
-        }
-        .my-legend .legend-scale ul li {
-            display: block;
-            float: left;
-            width: 50px;
-            margin-bottom: 6px;
-            text-align: center;
-            font-size: 80%;
-            list-style: none;
-        }
-        .my-legend ul.legend-labels li span {
-            display: block;
-            float: left;
-            height: 15px;
-            width: 50px;
-        }
-
-        .footer {
-            position: fixed;
-            left: 0;
-            bottom: 0;
-            width: 100%;
-            text-align: center;
-        }
-
-        .my-legend {
-            float: right;
-            padding-right: 50px;
-            color: white;
-            margin-right: 8px;
-            margin-top: 0px;
-            display: none;
-
-        }
-
-    </style>
 </head>
 <body>
 <header class="header">
@@ -433,10 +299,6 @@
 <section class="desc">
     <p style="margin: 0">Le but de cette application est de permettre à quiconque de trouver les lieux adéquats pour pratiquer du sport à l'extérieur.
         Grâce à cette application, l'utilisateur peut trouver les arrêts de transports publics les plus proches de son lieu d'exercice.</p>
-    <div id="information">
-        <img id="route" src="https://maps.gstatic.com/tactile/omnibox/directions-1x-20150909.png"/>
-        <img id="reset" src="https://cdn2.iconfinder.com/data/icons/diagona/icon/16/101.png"/>
-    </div>
 </section>
 <div class="container">
     <div id="map">

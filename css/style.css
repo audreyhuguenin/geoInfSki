@@ -1,0 +1,85 @@
+body {
+    background-color: #004455;
+}
+#map {
+    width: 100%;
+    height: 100%;
+}
+
+#info {
+    position: absolute;
+    margin-top: 0px;
+    left: 60px;
+    background-color: rgba(0, 0, 10, 0.7);
+    border-radius: 10px;
+    padding: 8px;
+    z-index: 1000000000;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: white;
+}
+
+.titre {
+    padding-left: 50px;
+    padding-top: 25px;
+    font-family: "Barlow ExtraBold";
+    background-color: white;
+    margin: 0;
+    padding-bottom: 25px;
+}
+
+.desc {
+    padding-left: 50px;
+    padding-right: 50px;
+    font-family: "Barlow SemiBold";
+    background-color: white;
+    margin: 0;
+    padding-bottom: 25px;
+}
+
+.my-legend .legend-title {
+    text-align: left;
+    margin-bottom: 8px;
+    font-weight: bold;
+    font-size: 90%;
+}
+.my-legend .legend-scale ul {
+    margin: 0;
+    padding: 0;
+    float: left;
+    list-style: none;
+}
+.my-legend .legend-scale ul li {
+    display: block;
+    float: left;
+    width: 50px;
+    margin-bottom: 6px;
+    text-align: center;
+    font-size: 80%;
+    list-style: none;
+}
+.my-legend ul.legend-labels li span {
+    display: block;
+    float: left;
+    height: 15px;
+    width: 50px;
+}
+
+.footer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    text-align: center;
+}
+
+.my-legend {
+    float: right;
+    padding-right: 50px;
+    color: white;
+    margin-right: 8px;
+    margin-top: 0px;
+    display: none;
+
+}
