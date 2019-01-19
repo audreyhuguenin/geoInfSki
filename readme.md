@@ -1,4 +1,4 @@
-# Accidentologie
+# Sport in Geneva
 
 This application is not going to work locally because you need to install WAMP or MAMP. 
 
