@@ -20,6 +20,9 @@ npm install
 
 ## Architecture
 
+<img src="architecture.jpg" width="50%" height="50%">
+
+
 ## DEMO
 
 Si vous voulez tester l'application, cliquez sur ce [lien](https://audreyhuguenin.github.io/geoInfSki/).
