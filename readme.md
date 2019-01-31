@@ -24,5 +24,5 @@ npm install
 
 Si vous voulez tester l'application, cliquez sur ce [lien](https://audreyhuguenin.github.io/geoInfSki/).
 
-Pour comprendre comment fonctionne l'application, suivez le [guide d'utilisation](geoInfSki/userGuide_SportExt_Geneve.pdf).
+Pour comprendre comment fonctionne l'application, suivez le [guide d'utilisation](userGuide_SportExt_Geneve.pdf).
 
