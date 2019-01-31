@@ -1,6 +1,22 @@
 # Sport in Geneva
 
-This application is not going to work locally because you need to install WAMP or MAMP. 
+---
+
+The creation of this application was done as part of the "GEOINF" course at [HEIG-VD](https://heig-vd.ch/). The goal of this course was to learn how to create a map application.
+
+---
+
+## Setup
+
+Clone the source locally:
+
+```
+git clone https://github.com/audreyhuguenin/geoInfSki.git
+cd sportGeneva_app
+npm install
+```
+
+This application is not going to work locally because you need to install WAMP or MAMP.
 
 In order to make it work, you will need to install one of them.
 
