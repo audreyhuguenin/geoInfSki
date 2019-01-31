@@ -1,8 +1,11 @@
 # TPGSPORTS
 
+Ce projet a été élaboré dans le cadre du cours "GEOINF" à la [HEIG-VD](https://heig-vd.ch/). Le but de ce cours était de créer une application cartographique.
+
 ---
 
-Ce projet a été élaboré dans le cadre du cours "GEOINF" à la [HEIG-VD](https://heig-vd.ch/). Le but de ce cours été de créer une application cartographique.
+## Application
+Le but de cette application est de permettre à quiconque de trouver les lieux adéquats pour pratiquer du sport à l'extérieur. Grâce à cette application, l'utilisateur peut trouver les arrêts de transports publics les plus proches de son lieu d'exercice.
 
 ---
 
