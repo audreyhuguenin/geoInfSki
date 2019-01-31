@@ -5,9 +5,8 @@ Ce projet a été élaboré dans le cadre du cours "GEOINF" à la [HEIG-VD](http
 ---
 
 ## Application
-Le but de cette application est de permettre à quiconque de trouver les lieux adéquats pour pratiquer du sport à l'extérieur. Grâce à cette application, l'utilisateur peut trouver les arrêts de transports publics les plus proches de son lieu d'exercice.
+Le but de cette application est de permettre à quiconque de trouver les lieux adéquats pour pratiquer du sport à l'extérieur à Genève. Grâce à cette application, l'utilisateur peut trouver les arrêts de transports publics les plus proches de son lieu d'exercice.
 
----
 
 ## Configuration
 
